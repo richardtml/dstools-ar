@@ -5,7 +5,7 @@ Tools to preprocess action recognition datasets.
 * [UCF101](https://www.crcv.ucf.edu/data/UCF101.php)
 
 
-## Enviroment Setup
+## Setup
 
 For Ubuntu 18.04 install the following packages:
 
@@ -50,7 +50,7 @@ DATASETS_DIR=/path/to/datasets_dir
 
 ## Run
 
-Each dataset has a `Snakefile`, to run the whole preprocess enter 
+Each dataset has a `snakefile`, to run the whole preprocess enter 
 to its directory and execute:
 
 ```bash
@@ -58,4 +58,4 @@ cd ucf101
 snakemake
 ```
 
-Check `Snakefile` for the available steps. There is also a `stats.py` script to plot statistics for the dataset.
+Check `snakefile` for the available steps. There is also a `stats.py` script to plot statistics for the dataset.

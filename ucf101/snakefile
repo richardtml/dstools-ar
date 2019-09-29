@@ -10,14 +10,23 @@ DATASETS_DIR = os.getenv('DATASETS_DIR')
 URL = 'https://www.crcv.ucf.edu/data/UCF101/UCF101.rar'
 DS_DIR = join(DATASETS_DIR, 'ucf101')
 VIDEOS_DIR = join(DS_DIR, 'videos')
+FRAMES_DIR = join(DS_DIR, 'frames')
 
 
 rule all:
   input:
-    VIDEOS_DIR
+    FRAMES_DIR
 
 rule download:
   output:
     directory(VIDEOS_DIR)
   shell:
     "python preprocess.py download"
+
+rule extract_frames:
+  input:
+    VIDEOS_DIR
+  output:
+    directory(FRAMES_DIR)
+  shell:
+    "python preprocess.py extract_frames"
