@@ -31,6 +31,7 @@ from dask.diagnostics import ProgressBar
 from dotenv import load_dotenv
 from skimage.io import imread
 from skimage.transform import resize
+from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
@@ -53,6 +54,7 @@ REPS_2048_PATH = join(DS_DIR, 'ucf101_resnet50_2048.h5')
 REPS_1024_PATH = join(DS_DIR, 'ucf101_resnet50_1024.h5')
 REPS_0512_PATH = join(DS_DIR, 'ucf101_resnet50_0512.h5')
 FRAMES_PER_BATCH = 5
+PCA_SIZE = 1024
 
 
 class VFramesDataset(Dataset):
@@ -146,7 +148,7 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   data = []
   for vframes_dir, vreps in zip(frames_dirs, reps):
       rel_path = vframes_dir.relative_to(frames_dir)
-      video_name = str(rel_path)
+      video_name = str(rel_path.name)
       class_name = str(rel_path.parent)
       class_idx = classes_indices[class_name]
       data.append((video_name, vreps, class_idx))
@@ -154,10 +156,38 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   print(f'Representations saved at {REPS_2048_PATH}')
 
 
-def run(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
+def reduce_reps(size=PCA_SIZE):
+  """Applies PCA reduction."""
+  if size == 1024:
+    filename = REPS_1024_PATH
+  elif size == 512:
+    filename = REPS_0512_PATH
+  else:
+    raise ValueError('Unsupported `size` representations')
+  names, reps, labels, lens = [], [], [], []
+  with h5py.File(REPS_2048_PATH, 'r') as f:
+    for name in sorted(f.keys()):
+      names.append(name)
+      reps.append(np.array(f[name]['x']))
+      labels.append(f[name]['y'][()])
+      lens.append(f[name]['x'].shape[0])
+  reps = np.concatenate(reps, 0)
+  reps = PCA(n_components=size).fit_transform(reps)
+  indices = np.cumsum(lens)[:-1].tolist()
+  reps = np.vsplit(reps, indices)
+  with h5py.File(filename, 'w') as f:
+    for name, x, y in zip(names, reps, labels):
+      g = f.create_group(name)
+      g.create_dataset('x', data=x)
+      g.create_dataset('y', data=y)
+  print(f'Representations saved at {filename}')
+
+
+def run(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH, size=PCA_SIZE):
   download()
   extract_frames()
   extract_reps(arch, frames_per_batch)
+  reduce_reps(size)
 
 
 if __name__ == '__main__':

@@ -40,3 +40,11 @@ rule extract_reps:
     REPS_2048_PATH
   shell:
     "python preprocess.py extract_reps"
+
+rule reduce_reps_1024:
+  input:
+    REPS_2048_PATH
+  output:
+    REPS_1024_PATH
+  shell:
+    "python preprocess.py reduce_reps 1024"
