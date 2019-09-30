@@ -48,7 +48,6 @@ def download(url, dst_dir, filename, proto='http', extract=None):
     raise ValueError(f"Unsupported protocol {proto}")
   if extract:
     _extract(filepath, extract)
-  
 
 
 def _download_http(url, filepath):

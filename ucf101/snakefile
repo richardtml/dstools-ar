@@ -1,4 +1,4 @@
-# Snakefile for UCF101
+# snakefile for UCF101
 
 import os
 from os.path import join
@@ -7,15 +7,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 DATASETS_DIR = os.getenv('DATASETS_DIR')
-URL = 'https://www.crcv.ucf.edu/data/UCF101/UCF101.rar'
 DS_DIR = join(DATASETS_DIR, 'ucf101')
 VIDEOS_DIR = join(DS_DIR, 'videos')
 FRAMES_DIR = join(DS_DIR, 'frames')
+REPS_2048_PATH = join(DS_DIR, 'ucf101_resnet50_2048.h5')
+REPS_1024_PATH = join(DS_DIR, 'ucf101_resnet50_1024.h5')
+REPS_0512_PATH = join(DS_DIR, 'ucf101_resnet50_0512.h5')
 
 
 rule all:
   input:
-    FRAMES_DIR
+    REPS_2048_PATH
 
 rule download:
   output:
@@ -30,3 +32,11 @@ rule extract_frames:
     directory(FRAMES_DIR)
   shell:
     "python preprocess.py extract_frames"
+
+rule extract_reps:
+  input:
+    FRAMES_DIR
+  output:
+    REPS_2048_PATH
+  shell:
+    "python preprocess.py extract_reps"
