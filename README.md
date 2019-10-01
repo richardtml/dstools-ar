@@ -53,7 +53,7 @@ DATASETS_DIR=/path/to/datasets_dir
 also, definition can be done at command level:
 
 ```bash
-DATASETS_DIR=/path/to/datasets snakemake
+DATASETS_DIR=/path/to/datasets_dir snakemake
 ```
 
 Note that command level definition overrides dotenv one, this allows using diffents `DATASETS_DIR` directories per execution.
