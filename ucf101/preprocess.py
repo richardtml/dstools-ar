@@ -123,18 +123,17 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
   model = load_cnn(arch)
   model.to(device)
-  reps = []
-  lens = []
-  # frames_dirs = frames_dirs[:10]
+  reps, lens = [], []
+  frames_dirs = frames_dirs[:10]
   with torch.no_grad(): 
     for vframes_dir in tqdm(frames_dirs):
       ds = VFramesDataset(vframes_dir, RESNET_INPUT_SIZE)
       dl = DataLoader(ds, batch_size=frames_per_batch, num_workers=2)
       vreps = [model(frames.to(device)) for frames in tqdm(dl, leave=False)]
       vreps = [r.cpu().numpy() for r in vreps]
-      lens.append(len(vreps))
       vreps = np.concatenate(vreps, 0)
       reps.append(vreps)
+      lens.append(len(vreps))
   reps = np.concatenate(reps, 0)
   print('Applying z-score norm')
   reps = StandardScaler().fit_transform(reps)
