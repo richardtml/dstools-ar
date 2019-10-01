@@ -124,7 +124,7 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   model = load_cnn(arch)
   model.to(device)
   reps, lens = [], []
-  frames_dirs = frames_dirs[:10]
+  frames_dirs = frames_dirs[:1024]
   with torch.no_grad(): 
     for vframes_dir in tqdm(frames_dirs):
       ds = VFramesDataset(vframes_dir, RESNET_INPUT_SIZE)
@@ -156,6 +156,7 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
 
 def reduce_reps(size=PCA_SIZE):
   """Applies PCA reduction."""
+  print('reduce_reps() running ...')  
   if size == 1024:
     filename = REPS_1024_PATH
   elif size == 512:
@@ -181,11 +182,12 @@ def reduce_reps(size=PCA_SIZE):
   print(f'Representations saved at {filename}')
 
 
-def run(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH, size=PCA_SIZE):
+def run(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   download()
   extract_frames()
   extract_reps(arch, frames_per_batch)
-  reduce_reps(size)
+  reduce_reps(1024)
+  reduce_reps(512)
 
 
 if __name__ == '__main__':

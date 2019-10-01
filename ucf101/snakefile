@@ -1,9 +1,11 @@
 # snakefile for UCF101
 
+
 import os
 from os.path import join
 
 from common.utils import load_config
+
 
 load_config()
 DATASETS_DIR = os.getenv('DATASETS_DIR')
@@ -17,7 +19,7 @@ REPS_0512_PATH = join(DS_DIR, 'ucf101_resnet50_0512.h5')
 
 rule all:
   input:
-    REPS_2048_PATH
+    [REPS_1024_PATH, REPS_0512_PATH]
 
 rule download:
   output:
@@ -41,10 +43,13 @@ rule extract_reps:
   shell:
     "python preprocess.py extract_reps"
 
-rule reduce_reps_1024:
+rule reduce_reps:
   input:
     REPS_2048_PATH
   output:
-    REPS_1024_PATH
+    [REPS_1024_PATH, REPS_0512_PATH]
   shell:
-    "python preprocess.py reduce_reps 1024"
+    """
+    python preprocess.py reduce_reps 1024
+    python preprocess.py reduce_reps 512
+    """
