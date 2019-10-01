@@ -124,7 +124,7 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   model = load_cnn(arch)
   model.to(device)
   reps, lens = [], []
-  frames_dirs = frames_dirs[:1024]
+  # frames_dirs = frames_dirs[:1024]
   with torch.no_grad(): 
     for vframes_dir in tqdm(frames_dirs):
       ds = VFramesDataset(vframes_dir, RESNET_INPUT_SIZE)
