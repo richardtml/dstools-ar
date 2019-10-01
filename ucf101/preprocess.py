@@ -28,7 +28,6 @@ import numpy as np
 import torch
 from dask import delayed, compute
 from dask.diagnostics import ProgressBar
-from dotenv import load_dotenv
 from skimage.io import imread
 from skimage.transform import resize
 from sklearn.decomposition import PCA
@@ -37,10 +36,10 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
 import common
-from common.utils import extract_video_frames, load_cnn
+from common.utils import extract_video_frames, load_config, load_cnn
 
 
-load_dotenv()
+load_config()
 DATASETS_DIR = os.getenv('DATASETS_DIR')
 URL = 'https://www.crcv.ucf.edu/data/UCF101/UCF101.rar'
 DS_DIR = join(DATASETS_DIR, 'ucf101')

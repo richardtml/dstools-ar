@@ -3,9 +3,9 @@
 import os
 from os.path import join
 
-from dotenv import load_dotenv
+from common.utils import load_config
 
-load_dotenv()
+load_config()
 DATASETS_DIR = os.getenv('DATASETS_DIR')
 DS_DIR = join(DATASETS_DIR, 'ucf101')
 VIDEOS_DIR = join(DS_DIR, 'videos')

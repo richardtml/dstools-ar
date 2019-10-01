@@ -25,27 +25,38 @@ if [ `id -u` != '0' ]; then
 fi
 ```
 
-Create an enviroment:
+Enter to the repository diretory and vreate an enviroment:
 
 ```bash
+cd dstools-ar
 mkvirtualenv dstools-ar -p /usr/bin/python3.6
 ```
 
 Add the repository to the venv path:
+
 ```bash
 add2virtualenv .
 ```
 
 Install packages:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-Create a [dotenv](https://pypi.org/project/python-dotenv/) file `dstools-ar/.env` with the `DATASETS` variable pointing to the datasets container directory.
+Finally, its necessary to define `DATASETS_DIR` environment variable pointing to the datasets container directory. It can be defined permanently in a [dotenv](https://pypi.org/project/python-dotenv/) file `.env` in the root directory of the repository with the following content:
 
 ```bash
 DATASETS_DIR=/path/to/datasets_dir
 ```
+
+also, definition can be done at command level:
+
+```bash
+DATASETS_DIR=/path/to/datasets snakemake
+```
+
+Note that command level definition overrides dotenv one, this allows using diffents `DATASETS_DIR` directories per execution.
 
 
 ## Run
