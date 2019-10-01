@@ -11,6 +11,7 @@ load_config()
 DATASETS_DIR = os.getenv('DATASETS_DIR')
 DS_DIR = join(DATASETS_DIR, 'ucf101')
 VIDEOS_DIR = join(DS_DIR, 'videos')
+SPLITS_DIR = join(DS_DIR, 'splits')
 FRAMES_DIR = join(DS_DIR, 'frames')
 REPS_2048_PATH = join(DS_DIR, 'ucf101_resnet50_2048.h5')
 REPS_1024_PATH = join(DS_DIR, 'ucf101_resnet50_1024.h5')
@@ -19,13 +20,19 @@ REPS_0512_PATH = join(DS_DIR, 'ucf101_resnet50_0512.h5')
 
 rule all:
   input:
-    [REPS_1024_PATH, REPS_0512_PATH]
+    [REPS_1024_PATH, REPS_0512_PATH, SPLITS_DIR]
 
 rule download:
   output:
     directory(VIDEOS_DIR)
   shell:
     "python preprocess.py download"
+
+rule download_splits:
+  output:
+    directory(SPLITS_DIR)
+  shell:
+    "python preprocess.py download_splits"
 
 rule extract_frames:
   input:

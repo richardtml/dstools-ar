@@ -44,6 +44,9 @@ DATASETS_DIR = os.getenv('DATASETS_DIR')
 URL = 'https://www.crcv.ucf.edu/data/UCF101/UCF101.rar'
 DS_DIR = join(DATASETS_DIR, 'ucf101')
 FILENAME = 'UCF101.rar'
+URL_SPLITS = 'https://www.crcv.ucf.edu/data/UCF101/UCF101TrainTestSplits-RecognitionTask.zip'
+SPLITS_FILENAME = 'splits.zip'
+SPLITS_DIR = join(DS_DIR, 'splits')
 VIDEOS_DIR = join(DS_DIR, 'videos')
 FRAMES_DIR = join(DS_DIR, 'frames')
 FPS = 10
@@ -93,6 +96,21 @@ def download():
     print(
       f"Error, extracted 'UCF-101' directory not found, "
       "could not rename to 'videos' directory"
+    )
+
+
+def download_splits():
+  """Downloads and extracts splits at ${DATASETS_DIR}/ucf101/splits."""
+  print('download_splits() running ...')
+  common.utils.download(URL_SPLITS, DS_DIR, SPLITS_FILENAME, extract='auto')
+  tmp_dir = os.path.join(DS_DIR, 'ucfTrainTestlist')
+  if os.path.exists(tmp_dir):
+    os.rename(tmp_dir, SPLITS_DIR)
+    print(f'Splits saved at {SPLITS_DIR}')
+  else:
+    print(
+      f"Error, extracted 'ucfTrainTestlist' directory not found, "
+      "could not rename to 'splits' directory"
     )
 
 
