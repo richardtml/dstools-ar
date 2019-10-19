@@ -1,7 +1,7 @@
 """ utils.py
 
 Common preprocessing utils.
-""" 
+"""
 
 from dotenv import load_dotenv
 

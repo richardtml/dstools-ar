@@ -13,14 +13,14 @@ DS_DIR = join(DATASETS_DIR, 'ucf101')
 VIDEOS_DIR = join(DS_DIR, 'videos')
 SPLITS_DIR = join(DS_DIR, 'splits')
 FRAMES_DIR = join(DS_DIR, 'frames')
-REPS_2048_PATH = join(DS_DIR, 'ucf101_resnet50_2048.h5')
-REPS_1024_PATH = join(DS_DIR, 'ucf101_resnet50_1024.h5')
-REPS_0512_PATH = join(DS_DIR, 'ucf101_resnet50_0512.h5')
+REPS_2048_DIR = join(DS_DIR, 'ucf101_resnet50_2048.zarr')
+REPS_1024_DIR = join(DS_DIR, 'ucf101_resnet50_1024.zarr')
+REPS_0512_DIR = join(DS_DIR, 'ucf101_resnet50_0512.zarr')
 
 
 rule all:
   input:
-    [REPS_1024_PATH, REPS_0512_PATH, SPLITS_DIR]
+    [REPS_1024_DIR, REPS_0512_DIR, SPLITS_DIR]
 
 rule download:
   output:
@@ -46,15 +46,15 @@ rule extract_reps:
   input:
     FRAMES_DIR
   output:
-    REPS_2048_PATH
+    directory(REPS_2048_DIR)
   shell:
     "python preprocess.py extract_reps"
 
 rule reduce_reps:
   input:
-    REPS_2048_PATH
+    REPS_2048_DIR
   output:
-    [REPS_1024_PATH, REPS_0512_PATH]
+    [directory(REPS_1024_DIR), directory(REPS_0512_DIR)]
   shell:
     """
     python preprocess.py reduce_reps 1024

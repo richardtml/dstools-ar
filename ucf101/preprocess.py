@@ -12,7 +12,7 @@ To run from scratch:
 
   python preprocess.py run --frames_per_batch=FRAMES_PER_BATCH
 
-where FRAMES_PER_BATCH is the number of frames per batch, 
+where FRAMES_PER_BATCH is the number of frames per batch,
 it controls the CPU/GPU memory used.
 """
 
@@ -23,9 +23,9 @@ import pathlib
 from os.path import join
 
 import fire
-import h5py
 import numpy as np
 import torch
+import zarr
 from dask import delayed, compute
 from dask.diagnostics import ProgressBar
 from skimage.io import imread
@@ -52,9 +52,9 @@ FRAMES_DIR = join(DS_DIR, 'frames')
 FPS = 10
 NAME_PADDING = 3
 RESNET_INPUT_SIZE = (224, 224)
-REPS_2048_PATH = join(DS_DIR, 'ucf101_resnet50_2048.h5')
-REPS_1024_PATH = join(DS_DIR, 'ucf101_resnet50_1024.h5')
-REPS_0512_PATH = join(DS_DIR, 'ucf101_resnet50_0512.h5')
+REPS_2048_DIR = join(DS_DIR, 'ucf101_resnet50_2048.zarr')
+REPS_1024_DIR = join(DS_DIR, 'ucf101_resnet50_1024.zarr')
+REPS_0512_DIR = join(DS_DIR, 'ucf101_resnet50_0512.zarr')
 FRAMES_PER_BATCH = 5
 PCA_SIZE = 1024
 
@@ -76,46 +76,46 @@ class VFramesDataset(Dataset):
     return img
 
 
-def save2h5(data, filepath):
-  with h5py.File(filepath, 'w') as f:
-    for video_name, video_reps, class_idx in data:
-      g = f.create_group(video_name)
-      g.create_dataset('x', data=video_reps)
-      g.create_dataset('y', data=class_idx)
+def save2zarr(data, dir):
+  f = zarr.open(dir, 'w')
+  for video_name, video_reps, class_idx in data:
+    g = f.create_group(video_name)
+    g.create_dataset('x', data=video_reps, dtype=np.float32)
+    g.create_dataset('y', data=class_idx, dtype=np.int32)
 
 
 def download():
-  """Downloads and extracts at ${DATASETS_DIR}/ucf101/videos."""
+  """Downloads and extracts to ${DATASETS_DIR}/ucf101/videos."""
   print('download() running ...')
   common.utils.download(URL, DS_DIR, FILENAME, extract='auto')
   tmp_dir = os.path.join(DS_DIR, 'UCF-101')
-  if os.path.exists(tmp_dir):
+  try:
     os.rename(tmp_dir, VIDEOS_DIR)
-    print(f'Videos saved at {VIDEOS_DIR}')
-  else:
-    print(
+    print(f'Videos saved to {VIDEOS_DIR}')
+  except IOError as ex:
+    raise IOError(
       f"Error, extracted 'UCF-101' directory not found, "
       "could not rename to 'videos' directory"
-    )
+    ) from ex
 
 
 def download_splits():
-  """Downloads and extracts splits at ${DATASETS_DIR}/ucf101/splits."""
+  """Downloads and extracts splits to ${DATASETS_DIR}/ucf101/splits."""
   print('download_splits() running ...')
   common.utils.download(URL_SPLITS, DS_DIR, SPLITS_FILENAME, extract='auto')
   tmp_dir = os.path.join(DS_DIR, 'ucfTrainTestlist')
-  if os.path.exists(tmp_dir):
+  try:
     os.rename(tmp_dir, SPLITS_DIR)
-    print(f'Splits saved at {SPLITS_DIR}')
-  else:
-    print(
+    print(f'Splits saved to {SPLITS_DIR}')
+  except IOError as ex:
+    raise IOError(
       f"Error, extracted 'ucfTrainTestlist' directory not found, "
       "could not rename to 'splits' directory"
-    )
+    ) from ex
 
 
 def extract_frames():
-  """Extract frames at ${DATASETS_DIR}/ucf101/frames."""
+  """Extracts frames to ${DATASETS_DIR}/ucf101/frames."""
   print('extract_frames() running ...')
   videos_dir = pathlib.Path(VIDEOS_DIR)
   frames_dir = pathlib.Path(FRAMES_DIR)
@@ -125,16 +125,16 @@ def extract_frames():
   for video_path in videos_paths:
     rel_path = video_path.relative_to(videos_dir)
     video_frames_dir = frames_dir / rel_path.parent / rel_path.stem
-    result.append(delayed(extract_video_frames)(video_path, 
+    result.append(delayed(extract_video_frames)(video_path,
       video_frames_dir, FPS, 'fps', NAME_PADDING))
   with ProgressBar():
     compute(result)
-  print(f'Frames saved at {FRAMES_DIR}')
+  print(f'Frames saved to {FRAMES_DIR}')
 
 
 def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
-  """Extract representations at ${DATASETS_DIR}/ucf101/ucf101_resnet50_2048.h5."""
-  print('extract_reps() running ...')  
+  """Extracts representations to ${DATASETS_DIR}/ucf101/ucf101_resnet50_2048.zarr."""
+  print('extract_reps() running ...')
   print('Computing representations')
   frames_dir = pathlib.Path(FRAMES_DIR)
   frames_dirs = sorted(list(frames_dir.glob('*/*/')))
@@ -142,8 +142,8 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   model = load_cnn(arch)
   model.to(device)
   reps, lens = [], []
-  # frames_dirs = frames_dirs[:1024]
-  with torch.no_grad(): 
+  with torch.no_grad():
+    #frames_dirs = frames_dirs[:10]
     for vframes_dir in tqdm(frames_dirs):
       ds = VFramesDataset(vframes_dir, RESNET_INPUT_SIZE)
       dl = DataLoader(ds, batch_size=frames_per_batch, num_workers=2)
@@ -155,8 +155,8 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   reps = np.concatenate(reps, 0)
   print('Applying z-score norm')
   reps = StandardScaler().fit_transform(reps)
-  print('Saving') 
-  classes_names = sorted([d.name for d in frames_dir.iterdir() 
+  print('Saving')
+  classes_names = sorted([d.name for d in frames_dir.iterdir()
       if not d.name.startswith('.')])
   classes_indices = {c: i for i, c in enumerate(classes_names)}
   indices = np.cumsum(lens)[:-1].tolist()
@@ -168,36 +168,40 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
       class_name = str(rel_path.parent)
       class_idx = classes_indices[class_name]
       data.append((video_name, vreps, class_idx))
-  save2h5(data, REPS_2048_PATH)
-  print(f'Representations saved at {REPS_2048_PATH}')
+  save2zarr(data, REPS_2048_DIR)
+  print(f'Representations saved to {REPS_2048_DIR}')
 
 
 def reduce_reps(size=PCA_SIZE):
   """Applies PCA reduction."""
-  print('reduce_reps() running ...')  
+  print('reduce_reps() running ...')
   if size == 1024:
-    filename = REPS_1024_PATH
+    zarr_dir = REPS_1024_DIR
   elif size == 512:
-    filename = REPS_0512_PATH
+    zarr_dir = REPS_0512_DIR
   else:
     raise ValueError('Unsupported `size` representations')
   names, reps, labels, lens = [], [], [], []
-  with h5py.File(REPS_2048_PATH, 'r') as f:
-    for name in sorted(f.keys()):
-      names.append(name)
-      reps.append(np.array(f[name]['x']))
-      labels.append(f[name]['y'][()])
-      lens.append(f[name]['x'].shape[0])
+  f = zarr.open(REPS_2048_DIR, 'r')
+  for name in sorted(f.keys()):
+    names.append(name)
+    reps.append(np.array(f[name]['x']))
+    labels.append(f[name]['y'][()])
+    lens.append(f[name]['x'].shape[0])
   reps = np.concatenate(reps, 0)
+  print('Applying PCA')
   reps = PCA(n_components=size).fit_transform(reps)
+  print('Applying z-score norm')
+  reps = StandardScaler().fit_transform(reps)
   indices = np.cumsum(lens)[:-1].tolist()
   reps = np.vsplit(reps, indices)
-  with h5py.File(filename, 'w') as f:
-    for name, x, y in zip(names, reps, labels):
-      g = f.create_group(name)
-      g.create_dataset('x', data=x)
-      g.create_dataset('y', data=y)
-  print(f'Representations saved at {filename}')
+  print('Saving')
+  f = zarr.open(zarr_dir, 'w')
+  for name, x, y in zip(names, reps, labels):
+    g = f.create_group(name)
+    g.create_dataset('x', data=x, dtype=np.float32)
+    g.create_dataset('y', data=y, dtype=np.int32)
+  print(f'Representations saved to {zarr_dir}')
 
 
 def run(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
