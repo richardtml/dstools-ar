@@ -131,7 +131,7 @@ def extract_reps(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
     for vframes_dir in tqdm(frames_dirs):
       ds = VFramesDataset(vframes_dir, RESNET_INPUT_SIZE)
       dl = DataLoader(ds, batch_size=frames_per_batch, num_workers=2)
-      vreps = [model(frames.to(device)) for frames in tqdm(dl, leave=False)]
+      vreps = [model(frames.to(device)) for frames in dl]
       vreps = [r.cpu().numpy() for r in vreps]
       vreps = np.concatenate(vreps, 0)
       reps.append(vreps)
