@@ -40,12 +40,12 @@ from common.utils import extract_video_frames, load_config, load_cnn
 
 
 load_config()
+URL = 'https://cloud.xibalba.com.mx/s/swZKJGnSFqdBXj4/download'
+SPLITS_URL = 'https://cloud.xibalba.com.mx/s/X248be2WBPwsbzM/download'
+FILENAME = 'ucf101-videos.tar.gz'
+SPLITS_FILENAME = 'ucf101-splits.tar.gz'
 DATASETS_DIR = os.getenv('DATASETS_DIR')
-URL = 'https://www.crcv.ucf.edu/data/UCF101/UCF101.rar'
 DS_DIR = join(DATASETS_DIR, 'ucf101')
-FILENAME = 'UCF101.rar'
-URL_SPLITS = 'https://www.crcv.ucf.edu/data/UCF101/UCF101TrainTestSplits-RecognitionTask.zip'
-SPLITS_FILENAME = 'splits.zip'
 SPLITS_DIR = join(DS_DIR, 'splits')
 VIDEOS_DIR = join(DS_DIR, 'videos')
 FRAMES_DIR = join(DS_DIR, 'frames')
@@ -88,30 +88,14 @@ def download():
   """Downloads and extracts to ${DATASETS_DIR}/ucf101/videos."""
   print('download() running ...')
   common.utils.download(URL, DS_DIR, FILENAME, extract='auto')
-  tmp_dir = os.path.join(DS_DIR, 'UCF-101')
-  try:
-    os.rename(tmp_dir, VIDEOS_DIR)
-    print(f'Videos saved to {VIDEOS_DIR}')
-  except IOError as ex:
-    raise IOError(
-      f"Error, extracted 'UCF-101' directory not found, "
-      "could not rename to 'videos' directory"
-    ) from ex
+  print(f'Videos saved to {VIDEOS_DIR}')
 
 
 def download_splits():
   """Downloads and extracts splits to ${DATASETS_DIR}/ucf101/splits."""
   print('download_splits() running ...')
-  common.utils.download(URL_SPLITS, DS_DIR, SPLITS_FILENAME, extract='auto')
-  tmp_dir = os.path.join(DS_DIR, 'ucfTrainTestlist')
-  try:
-    os.rename(tmp_dir, SPLITS_DIR)
-    print(f'Splits saved to {SPLITS_DIR}')
-  except IOError as ex:
-    raise IOError(
-      f"Error, extracted 'ucfTrainTestlist' directory not found, "
-      "could not rename to 'splits' directory"
-    ) from ex
+  common.utils.download(SPLITS_URL, DS_DIR, SPLITS_FILENAME, extract='auto')
+  print(f'Splits saved to {SPLITS_DIR}')
 
 
 def extract_frames():
