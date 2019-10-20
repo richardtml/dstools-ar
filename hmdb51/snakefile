@@ -1,0 +1,62 @@
+# snakefile for UCF101
+
+
+import os
+from os.path import join
+
+from common.utils import load_config
+
+
+load_config()
+DATASETS_DIR = os.getenv('DATASETS_DIR')
+DS_DIR = join(DATASETS_DIR, 'hmdb51')
+VIDEOS_DIR = join(DS_DIR, 'videos')
+SPLITS_DIR = join(DS_DIR, 'splits')
+FRAMES_DIR = join(DS_DIR, 'frames')
+REPS_2048_DIR = join(DS_DIR, 'hmdb51_resnet50_2048.zarr')
+REPS_1024_DIR = join(DS_DIR, 'hmdb51_resnet50_1024.zarr')
+REPS_0512_DIR = join(DS_DIR, 'hmdb51_resnet50_0512.zarr')
+
+
+rule all:
+  input:
+    [REPS_1024_DIR, REPS_0512_DIR, SPLITS_DIR]
+
+rule download:
+  output:
+    directory(VIDEOS_DIR)
+  shell:
+    "python preprocess.py download"
+
+rule download_splits:
+  output:
+    directory(SPLITS_DIR)
+  shell:
+    "python preprocess.py download_splits"
+
+rule extract_frames:
+  input:
+    VIDEOS_DIR
+  output:
+    directory(FRAMES_DIR)
+  shell:
+    "python preprocess.py extract_frames"
+
+rule extract_reps:
+  input:
+    FRAMES_DIR
+  output:
+    directory(REPS_2048_DIR)
+  shell:
+    "python preprocess.py extract_reps"
+
+rule reduce_reps:
+  input:
+    REPS_2048_DIR
+  output:
+    [directory(REPS_1024_DIR), directory(REPS_0512_DIR)]
+  shell:
+    """
+    python preprocess.py reduce_reps 1024
+    python preprocess.py reduce_reps 512
+    """
