@@ -53,20 +53,22 @@ DATASETS_DIR=/path/to/datasets_dir
 also, definition can be done at command level:
 
 ```bash
-DATASETS_DIR=/path/to/datasets_dir snakemake
+DATASETS_DIR=/path/to/datasets_dir CUDA_VISIBLE_DEVICES=1 snakemake -p
 ```
 
 Note that command level definition overrides dotenv one, this allows using diffents `DATASETS_DIR` directories per execution.
 
+`CUDA_VISIBLE_DEVICES=0,1` filters available gpu's to the process.
+
 
 ## Run
 
-Each dataset has a `snakefile`, to run the whole preprocess enter 
+Each dataset has a `snakefile`, to run the whole preprocess enter
 to its directory and execute:
 
 ```bash
 cd ucf101
-snakemake
+snakemake -p
 ```
 
 Check `snakefile` for the available steps. There is also a `stats.py` script to plot statistics for the dataset.
