@@ -222,6 +222,7 @@ def extract_splits():
       names = load_split(SPLITS_DIR, split, subset)
       g.create_dataset(subset, data=names,
           dtype=object, object_codec=numcodecs.VLenUTF8())
+  print(f'Splits saved to {SPLITS_FINAL_DIR}')
 
 
 def run(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
