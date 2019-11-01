@@ -17,12 +17,14 @@ it controls the CPU/GPU memory used.
 """
 
 
+import csv
 import glob
 import os
 import pathlib
 from os.path import join
 
 import fire
+import numcodecs
 import numpy as np
 import torch
 import zarr
@@ -55,6 +57,7 @@ RESNET_INPUT_SIZE = (224, 224)
 REPS_2048_DIR = join(DS_DIR, 'hmdb51_resnet50_2048.zarr')
 REPS_1024_DIR = join(DS_DIR, 'hmdb51_resnet50_1024.zarr')
 REPS_0512_DIR = join(DS_DIR, 'hmdb51_resnet50_0512.zarr')
+SPLITS_FINAL_DIR = join(DS_DIR, 'splits.zarr')
 FRAMES_PER_BATCH = 5
 PCA_SIZE = 1024
 
@@ -82,6 +85,27 @@ def save2zarr(data, dir):
     g = f.create_group(video_name)
     g.create_dataset('x', data=video_reps, dtype=np.float32)
     g.create_dataset('y', data=class_idx, dtype=np.int32)
+
+
+def load_file_class(path, subset):
+  subset = 1 if subset == 'train' else 2
+  names = []
+  with open(path, 'r') as f:
+    reader = csv.reader(f, delimiter=' ')
+    for row in reader:
+      if subset == int(row[1]):
+        name = row[0].split('.')[0]
+        names.append(name)
+  return names
+
+
+def load_split(splits_dir, split, subset):
+  """Loads examples names in split."""
+  pattern = join(splits_dir, f'*split{split}.txt')
+  names = []
+  for filepath in sorted(glob.glob(pattern)):
+    names.extend(load_file_class(filepath, subset))
+  return names
 
 
 def download():
@@ -189,12 +213,25 @@ def reduce_reps(size=PCA_SIZE):
   print(f'Representations saved to {zarr_dir}')
 
 
+def extract_splits():
+  """Extracts splits to ${DATASETS_DIR}/hmdb51/splits.zarr."""
+  f = zarr.open(SPLITS_FINAL_DIR, 'w')
+  for split in (1, 2, 3):
+    g = f.create_group(str(split))
+    for subset in ('train', 'test'):
+      names = load_split(SPLITS_DIR, split, subset)
+      g.create_dataset(subset, data=names,
+          dtype=object, object_codec=numcodecs.VLenUTF8())
+
+
 def run(arch='resnet50', frames_per_batch=FRAMES_PER_BATCH):
   download()
+  download_splits()
   extract_frames()
   extract_reps(arch, frames_per_batch)
   reduce_reps(1024)
   reduce_reps(512)
+  extract_splits()
 
 
 if __name__ == '__main__':
