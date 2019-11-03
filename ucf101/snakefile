@@ -13,9 +13,9 @@ DS_DIR = join(DATASETS_DIR, 'ucf101')
 VIDEOS_DIR = join(DS_DIR, 'videos')
 SPLITS_DIR = join(DS_DIR, 'splits')
 FRAMES_DIR = join(DS_DIR, 'frames')
-REPS_2048_DIR = join(DS_DIR, 'ucf101_resnet50_2048.zarr')
-REPS_1024_DIR = join(DS_DIR, 'ucf101_resnet50_1024.zarr')
-REPS_0512_DIR = join(DS_DIR, 'ucf101_resnet50_0512.zarr')
+REPS_2048_DIR = join(DS_DIR, 'resnet50_2048.zarr')
+REPS_1024_DIR = join(DS_DIR, 'resnet50_1024.zarr')
+REPS_0512_DIR = join(DS_DIR, 'resnet50_0512.zarr')
 SPLITS_FINAL_DIR = join(DS_DIR, 'splits.zarr')
 
 
