@@ -51,7 +51,7 @@ DS_DIR = join(DATASETS_DIR, 'hmdb51')
 SPLITS_DIR = join(DS_DIR, 'splits')
 VIDEOS_DIR = join(DS_DIR, 'videos')
 FRAMES_DIR = join(DS_DIR, 'frames')
-FPS = 16
+FPS = 24
 NAME_PADDING = 3
 RESNET_INPUT_SIZE = (224, 224)
 REPS_2048_DIR = join(DS_DIR, 'resnet50_2048.zarr')
@@ -122,7 +122,7 @@ def download_splits():
   print(f'Splits saved to {SPLITS_DIR}')
 
 
-def extract_frames():
+def extract_frames(fps=FPS):
   """Extracts frames to ${DATASETS_DIR}/hmdb51/frames."""
   print('extract_frames() running ...')
   videos_dir = pathlib.Path(VIDEOS_DIR)
@@ -134,7 +134,7 @@ def extract_frames():
     rel_path = video_path.relative_to(videos_dir)
     video_frames_dir = frames_dir / rel_path.parent / rel_path.stem
     result.append(delayed(extract_video_frames)(video_path,
-      video_frames_dir, FPS, 'fps', NAME_PADDING))
+      video_frames_dir, fps, 'fps', NAME_PADDING))
   with ProgressBar():
     compute(result)
   print(f'Frames saved to {FRAMES_DIR}')
