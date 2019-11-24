@@ -1,7 +1,7 @@
 """ video.py
 
 Video utils.
-""" 
+"""
 
 import subprocess
 import os
@@ -33,7 +33,7 @@ def count_video_frames(video_path, verbose=False):
 def extract_video_frames(video_path, frames_dir,
     n, mode='fps', pad=0, verbose=False):
   """Extracts video frames using ffmpeg.
-  
+
   Parameters
     ----------
     video_path : str
@@ -47,7 +47,7 @@ def extract_video_frames(video_path, frames_dir,
       if 'fpv' it extracts `n` frames per video,
       otherwise it raises ValueError.
     pad : int
-      Defualt 0, number of leading zeros to pad 
+      Defualt 0, number of leading zeros to pad
       in the frames files name.
     verbose : bool
       If True, prints the ffmpeg command.
@@ -58,11 +58,11 @@ def extract_video_frames(video_path, frames_dir,
   """
   if mode == 'fps':
     cmd = (
-      f'ffmpeg -loglevel panic '
-      f'-i "{video_path}" '
-      f'-vf fps={n} '
-      f'-start_number 0 '
-      f'"{frames_dir}/%0{pad}d.jpg"'
+      f'ffmpeg -loglevel panic'
+      f' -i "{video_path}"'
+      f' -vf fps={n}:round=up'
+      f' -start_number 0'
+      f' "{frames_dir}/%0{pad}d.jpg"'
     )
   elif mode == 'fpv':
     cmd = (
