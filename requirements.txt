@@ -47,7 +47,7 @@ pyrsistent==0.15.4
 python-dateutil==2.8.0
 python-dotenv==0.10.3
 PyWavelets==1.1.1
-PyYAML==5.1.2
+PyYAML==5.4
 ratelimiter==1.2.0.post0
 requests==2.22.0
 scikit-image==0.16.1
