@@ -7,7 +7,7 @@ certifi==2019.9.11
 chardet==3.0.4
 ConfigArgParse==0.15.1
 cycler==0.10.0
-dask==2.6.0
+dask==2021.10.0
 datrie==0.8
 decorator==4.4.0
 docutils==0.15.2
